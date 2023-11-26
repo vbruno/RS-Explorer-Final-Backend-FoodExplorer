@@ -35,13 +35,15 @@ class UsersController {
       password: await hash(password, 8),
     }).returning('*');
 
+    delete user.password;
+
     res.json(user);
   }
 
   async search(req, res) {
     const { name } = req.query;
 
-    console.log('name:', name);
+    // console.log('name:', name);
 
     if (!name || name.trim() === '') throw new AppError('Missing query parameter', 400);
 
@@ -55,7 +57,9 @@ class UsersController {
   async show(req, res) {
     const { id } = req.params;
 
-    const [user] = await knex('users').where({ id });
+    const [user] = await knex('users')
+      .where({ id })
+      .select('id', 'name', 'email', 'role');
 
     res.json(user);
   }
@@ -63,18 +67,27 @@ class UsersController {
   async delete(req, res) {
     const { id } = req.params;
 
-    const user = await knex('users').where({ id }).del();
+    const user = await knex('users').select('id', 'name', 'email', 'role').where({ id }).first();
 
-    res.json(user);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    } else {
+      const op = await knex('users').where({ id }).del();
+      if (!op) {
+        throw new AppError('Error deleting user', 500);
+      }
+    }
+
+    res.json({ user, msg: 'Usuário deletado com sucesso!' });
   }
 
   async update(req, res) {
     const {
-      name, email, password, oldPassword, avatar,
+      name, email, password, oldPassword, role,
     } = req.body;
     const { id } = req.user;
 
-    console.log('name:', name, '\nemail:', email, '\npassword:', password, '\noldPassword:', oldPassword, '\navatar:', avatar, '\nid:', id);
+    console.log('name:', name, '\nemail:', email, '\npassword:', password, '\noldPassword:', oldPassword, '\nid:', id);
 
     const [userExists] = await knex('users').where({ id });
 
@@ -86,13 +99,16 @@ class UsersController {
       const [emailExists] = await knex('users').where({ email });
 
       if (emailExists) {
-        // throw new AppError('Email already exists', 400);
         throw new AppError('Esse email já esta cadastrado em outro usuário! Favor digitar outro email!', 400);
       }
     }
 
     if (password && !oldPassword) {
       throw new AppError('Você precisa informar a senha antiga para atualizar a senha.');
+    }
+
+    if (password === oldPassword) {
+      throw new AppError('A nova senha não pode ser igual a senha antiga.');
     }
 
     if (password && oldPassword) {
@@ -103,18 +119,23 @@ class UsersController {
       }
 
       if (password.length < 6) {
-        // throw new AppError('Password must be at least 6 characters', 400);
         throw new AppError('Senha precisa ter mais de 6 caracteres!', 400);
       }
+    }
+
+    if (role && role !== 'admin' && role !== 'user') {
+      throw new AppError('Role inválida! Role deve ser admin ou user!', 400);
     }
 
     const [user] = await knex('users').where({ id }).update({
       name: name ?? userExists.name,
       email: email ?? userExists.email,
       password: password ? await hash(password, 8) : userExists.password,
-      avatar: avatar ?? userExists.avatar,
+      role: role ?? userExists.role,
       update_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
     }).returning('*');
+
+    delete user.password;
 
     res.json(user);
   }
