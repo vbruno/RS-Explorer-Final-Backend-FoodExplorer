@@ -6,11 +6,14 @@ const express = require('express');
 
 const AppError = require('./utils/AppError');
 const { routes } = require('./routes');
+const { UPLOADS_FOLDER } = require('./configs/upload');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/image', express.static(UPLOADS_FOLDER));
 
 // a middleware function with no mount path. This code is executed for every request to the router
 app.use((req, res, next) => {

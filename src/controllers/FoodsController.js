@@ -1,6 +1,7 @@
 const dayjs = require('dayjs');
 
 const AppError = require('../utils/AppError');
+const DiskStorageProvider = require('../providers/DiskStorageProvider');
 const knex = require('../database/knex');
 
 class FoodsController {
@@ -104,6 +105,31 @@ class FoodsController {
     }).returning('*');
 
     return res.json(result);
+  }
+
+  async uploadImageDish(req, res) {
+    const { id } = req.params;
+
+    const imageDishFilename = req.file.filename;
+
+    const diskStorageProvider = new DiskStorageProvider();
+
+    const foods = await knex('foods').where({ id }).first();
+
+    if (!foods) {
+      throw new AppError('Foods not found', 404);
+    }
+
+    if (foods.image) {
+      await diskStorageProvider.deleteFile(foods.image);
+    }
+
+    const filename = await diskStorageProvider.saveFile(imageDishFilename);
+    foods.image = filename;
+
+    await knex('foods').update({ image: filename }).where({ id });
+
+    return res.json(foods);
   }
 }
 
