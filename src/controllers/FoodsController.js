@@ -35,12 +35,19 @@ class FoodsController {
 
     if (!search || search.trim() === '' || search.trim() === ',') throw new AppError('Missing query parameter', 400);
 
+    if (search === '-999') {
+      const resultAll = await knex('foods')
+        .select('*')
+        .orderBy('name', 'asc');
+      return res.json(resultAll);
+    }
+
     const result = await knex('foods')
       .select('*')
       .whereLike('name', `%${search}%`)
       .orWhereLike('ingredients', `%${search}%`)
       .orderBy('name', 'asc');
-    res.json(result);
+    return res.json(result);
   }
 
   async show(req, res) {
