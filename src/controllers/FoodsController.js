@@ -58,7 +58,7 @@ class FoodsController {
       // .select('id', 'name', 'email', 'role');
 
     // const { ingredients } = JSON.parse(result.ingredients);
-    console.log('result:', result);
+    // console.log('result:', result);
 
     res.json(result);
   }
@@ -85,7 +85,7 @@ class FoodsController {
       id, type, name, image, ingredients, price, description,
     } = req.body;
 
-    console.log('req.body:', req.body);
+    // console.log('req.body:', req.body);
 
     if (!id || !type || !name || !image || !ingredients || !price || !description) {
       throw new AppError('Missing body parameter', 400);

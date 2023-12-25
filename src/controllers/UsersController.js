@@ -87,8 +87,6 @@ class UsersController {
     } = req.body;
     const { id } = req.user;
 
-    console.log('name:', name, '\nemail:', email, '\npassword:', password, '\noldPassword:', oldPassword, '\nid:', id);
-
     const [userExists] = await knex('users').where({ id });
 
     if (!userExists) {
