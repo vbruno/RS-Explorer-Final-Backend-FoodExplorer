@@ -94,30 +94,36 @@ class UsersController {
     }
 
     if (email && email !== userExists.email) {
-      const [emailExists] = await knex('users').where({ email });
+      const emailExists = await knex('users').where({ email });
 
       if (emailExists) {
         throw new AppError('Esse email já esta cadastrado em outro usuário! Favor digitar outro email!', 400);
       }
     }
 
-    if (password && !oldPassword) {
-      throw new AppError('Você precisa informar a senha antiga para atualizar a senha.');
-    }
-
-    if (password === oldPassword) {
-      throw new AppError('A nova senha não pode ser igual a senha antiga.');
-    }
-
     if (password && oldPassword) {
-      const checkOldPassword = await compare(oldPassword, userExists.password);
-
-      if (!checkOldPassword) {
-        throw new AppError('Senha antiga incorreta.');
+      if (password && !oldPassword) {
+        throw new AppError('Você precisa informar a senha antiga para atualizar a senha.');
       }
 
-      if (password.length < 6) {
-        throw new AppError('Senha precisa ter mais de 6 caracteres!', 400);
+      if (!password && oldPassword) {
+        throw new AppError('Você precisa informar a senha nova para atualizar a senha.');
+      }
+
+      if (password === oldPassword) {
+        throw new AppError('A nova senha não pode ser igual a senha antiga.');
+      }
+
+      if (password && oldPassword) {
+        const checkOldPassword = await compare(oldPassword, userExists.password);
+
+        if (!checkOldPassword) {
+          throw new AppError('Senha antiga incorreta.');
+        }
+
+        if (password.length < 6) {
+          throw new AppError('Senha precisa ter mais de 6 caracteres!', 400);
+        }
       }
     }
 
