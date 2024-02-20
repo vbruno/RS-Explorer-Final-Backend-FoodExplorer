@@ -18,7 +18,7 @@ foodsRoutes.post('/register', foodsController.create);
 foodsRoutes.get('/search', foodsController.search);
 foodsRoutes.get('/:id', foodsController.show);
 foodsRoutes.delete('/:id', foodsController.delete);
-foodsRoutes.put('/update', foodsController.update);
+foodsRoutes.put('/update/:id', foodsController.update);
 
 foodsRoutes.patch(
   '/uploadImageDish/:id',

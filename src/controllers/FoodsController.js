@@ -85,19 +85,22 @@ class FoodsController {
       id, type, name, image, ingredients, price, description,
     } = req.body;
 
-    // console.log('req.body:', req.body);
+    console.log('req.body:', req.body);
 
     if (!id || !type || !name || !image || !ingredients || !price || !description) {
+      console.log('Missing body parameter', 400);
       throw new AppError('Missing body parameter', 400);
     }
 
     if (!['snack', 'dessert', 'drink'].includes(type)) {
+      console.log('Invalid type', 400);
       throw new AppError('Invalid type', 400);
     }
 
     const [foodExist] = await knex('foods').where({ id });
 
     if (!foodExist) {
+      console.log('food not found', 404);
       throw new AppError('food not found', 404);
     }
 
